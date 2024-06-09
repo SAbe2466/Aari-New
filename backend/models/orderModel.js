@@ -22,6 +22,8 @@ const orderSchema = new mongoose.Schema(
       city: { type: String, required: true },
       postalCode: { type: String, required: true },
       country: { type: String, required: true },
+      date: { type: String, required: true },
+      time: { type: String, required: true },
     },
     paymentMethod: { type: String, required: true },
     paymentResult: {
@@ -30,7 +32,7 @@ const orderSchema = new mongoose.Schema(
       update_time: String,
       email_address: String,
     },
-    itemPrice: { type: Number, required: true },
+    itemsPrice: { type: Number, required: true },
     shippingPrice: { type: Number, required: true },
     taxPrice: { type: Number, required: true },
     totalPrice: { type: Number, required: true },

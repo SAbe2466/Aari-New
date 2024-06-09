@@ -1,12 +1,14 @@
 import React, { useContext, useEffect, useReducer } from 'react';
 import { Helmet } from 'react-helmet-async';
-import MessageBox from '../components/MessageBox';
-import LoadingBox from '../components/LoadingBox';
-import { Store } from '../Store';
-import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
+import LoadingBox from '../components/LoadingBox';
+import MessageBox from '../components/MessageBox';
+import { Store } from '../Store';
 import { getError } from '../utils';
 import Button from 'react-bootstrap/esm/Button';
+import Table from 'react-bootstrap/Table';
+import Badge from 'react-bootstrap/Badge';
 
 const reducer = (state, action) => {
   switch (action.type) {
@@ -30,6 +32,7 @@ export default function OrderHistoryScreen() {
     loading: true,
     error: '',
   });
+
   useEffect(() => {
     const fetchData = async () => {
       dispatch({ type: 'FETCH_REQUEST' });
@@ -39,10 +42,10 @@ export default function OrderHistoryScreen() {
 
           { headers: { Authorization: `Bearer ${userInfo.token}` } }
         );
-        dispatch({ type: 'FETCH_SUCESS', payload: data });
+        dispatch({ type: 'FETCH_SUCCESS', payload: data });
       } catch (error) {
         dispatch({
-          type: 'FETCH_DATA',
+          type: 'FETCH_FAIL',
           payload: getError(error),
         });
       }
@@ -51,44 +54,66 @@ export default function OrderHistoryScreen() {
   }, [userInfo]);
 
   return (
-    <div>
+    <div className="marginAll">
       <Helmet>
         <title>Order History</title>
       </Helmet>
-
-      <h1>Order History</h1>
+      <h3>My Orders</h3>
       {loading ? (
         <LoadingBox></LoadingBox>
       ) : error ? (
         <MessageBox variant="danger">{error}</MessageBox>
       ) : (
-        <table className="table">
+        <Table hover className="table">
           <thead>
             <tr>
-              <th>ID</th>
-              <th>DATE</th>
-              <th>TOTAL</th>
-              <th>PAID</th>
-              <th>DELIVERED</th>
-              <th>ACTIONS</th>
+              <th>Ordered Packages</th>
+              <th>Date ( Order placed )</th>
+              <th>Total</th>
+              <th>Paid on</th>
+              <th>Deliverd on</th>
+              <th>Event Date</th>
+              <th>Event Time</th>
+              <th>Actions</th>
             </tr>
           </thead>
           <tbody>
             {orders.map((order) => (
               <tr key={order._id}>
-                <td>{order._id}</td>
-                <td>{order.createAt.substring(0, 10)}</td>
-                <td>{order.totalPrice.toFixed(2)}</td>
-                <td>{order.isPaid ? order.paidAt.substring(0, 10) : 'No'}</td>
                 <td>
-                  {order.isDelivered
-                    ? order.deliveredAt.substring(0, 10)
-                    : 'No'}
+                  <ul>
+                    {order.orderItems.map((item) => (
+                      <li key={item._id}>{item.name}</li>
+                    ))}
+                  </ul>
                 </td>
+                <td>{order.createdAt.substring(0, 10)}</td>
+                <td>{order.totalPrice.toFixed(2)}</td>
+                <td className={order.isPaid ? '' : 'not-paid'}>
+                  {order.isPaid ? (
+                    order.paidAt.substring(0, 10)
+                  ) : (
+                    <Badge pill bg="danger">
+                      Not paid
+                    </Badge>
+                  )}
+                </td>
+                <td className={order.isDelivered ? '' : 'not-deliverd'}>
+                  {order.isDelivered ? (
+                    order.deliveredAt.substring(0, 10)
+                  ) : (
+                    <Badge pill bg="info">
+                      Not deliverd
+                    </Badge>
+                  )}
+                </td>
+                <td>{order.shippingAddress.date}</td>
+                <td>{order.shippingAddress.time}</td>
+
                 <td>
                   <Button
                     type="button"
-                    variant="light"
+                    variant="outline-success"
                     onClick={() => {
                       navigate(`/order/${order._id}`);
                     }}
@@ -99,7 +124,7 @@ export default function OrderHistoryScreen() {
               </tr>
             ))}
           </tbody>
-        </table>
+        </Table>
       )}
     </div>
   );
